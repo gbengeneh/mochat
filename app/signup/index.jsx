@@ -1,5 +1,5 @@
 import { View, Text, StatusBar, ScrollView, StyleSheet, TouchableOpacity, Pressable } from "react-native";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import BackButton from "@/components/BackButton";
 import { useRouter } from "expo-router";
 import { hp, wp } from "@/helper/common";
@@ -11,12 +11,66 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import ScreenWrapper from "@/components/ScreenWrapper";
 import Button from "@/components/Button";
 import Loading from "@/components/Loading";
+import { supabase } from "@/lib/supabase";
+import { signInWithGoogle } from "@/services/userService";
 
 const SignUp = () => {
   const router = useRouter();
+  const nameRef = useRef("");
+  const emailRef = useRef("");
+  const passwordRef = useRef("");
+  const confirmPasswordRef = useRef("");
   const [loading, setLoading] = useState(false);
 
-  const handleGoogleSignIn = ()=>{}
+  const onSubmit = async () => {
+    if ( !emailRef.current || !passwordRef.current ) {
+      return alert("Please fill in all fields");
+    }
+    if (passwordRef.current !== confirmPasswordRef.current) {
+      Alert.alert("Passwords do not match");
+      return;
+    }
+
+    let name = nameRef.current.trim();
+    let email = emailRef.current.trim();
+    let password = passwordRef.current.trim();
+    setLoading(true);
+
+    const response = await supabase.auth.signUp({
+      email,
+      password,    
+      options:{
+        data:{name: name}
+      } 
+    });
+
+    const {data, error} = response;
+
+    setLoading(false);
+
+    if (error) {
+      Alert.alert("Error", error.message);
+      return;
+    }
+
+    if(data?.session){
+      console.log("Session: ", data.session);
+      Alert.alert("Success", "Account created successfully!");
+    }else{
+      console.log("no session: ", data);
+      Alert.alert("Success", "Account created successfully! Please check your email for verification.");
+    }
+  }
+
+ const handleGoogleSignIn = async () => {
+    const result = await signInWithGoogle();
+    if (!result.success) {
+      Alert.alert('Error', result.msg);
+    } else {
+      Alert.alert('Success', 'Signed in successfully with Google!');
+    }
+  };
+
   const handleAppleSignIn = ()=>{}
 
 
@@ -46,27 +100,27 @@ const SignUp = () => {
               
                icon={<FontAwesome6 name="user" size={26} color="black" />}
                placeholder="Enter your name"
-               onChangeText={()=>{}}
+               onChangeText={value => nameRef.current = value}
             />
             <Input
                icon={<AntDesign name="mail" size={24} color="black" />}
                placeholder="Enter your Email address"
-               onChangeText={()=>{}}
+               onChangeText={value => emailRef.current = value}
             />
             <Input
                icon={<FontAwesome6 name="lock" size={26} color="black" />}
                placeholder="Enter your Password"
                secureTextEntry
-               onChangeText={()=>{}}
+               onChangeText={value => passwordRef.current = value}
             />
             <Input
                icon={<FontAwesome6 name="lock" size={26} color="black" />}
                placeholder="Confirm Password"
                secureTextEntry
-               onChangeText={()=>{}}
+               onChangeText={value => confirmPasswordRef.current = value}
             />
 
-             <Button title={'Sign Up'} loading={loading} onPress={()=>{}} />
+             <Button title={'Sign Up'} loading={loading} onPress={onSubmit} />
           </View>
            {/* Divider */}
           <View style={styles.divider}>

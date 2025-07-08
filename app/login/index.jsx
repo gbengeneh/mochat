@@ -1,5 +1,5 @@
 import { View, Text, StatusBar, ScrollView, StyleSheet, TouchableOpacity, Pressable } from "react-native";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import BackButton from "@/components/BackButton";
 import { useRouter } from "expo-router";
 import { hp, wp } from "@/helper/common";
@@ -11,10 +11,32 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import ScreenWrapper from "@/components/ScreenWrapper";
 import Button from "@/components/Button";
 import Loading from "@/components/Loading";
+import { supabase } from "@/lib/supabase";
 
 const Login = () => {
    const router = useRouter();
+   const emailRef = useRef('');
+   const passwordRef = useRef('');
     const [loading, setLoading] = useState(false);
+    const [email , setEmail] = useState('');
+
+    const onSubmit = async () => {
+      if (!emailRef.current || !passwordRef.current) {
+        Alert.alert('Login', 'Please all is required');
+        return;
+      }
+      let email = emailRef.current.trim();
+      let password = passwordRef.current.trim();
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      setLoading(false);
+      if (error) {
+        Alert.alert('Login', error.message);
+      }
+    };
   
     const handleGoogleSignIn = ()=>{}
     const handleAppleSignIn = ()=>{}
@@ -44,18 +66,18 @@ const Login = () => {
             <Input
                icon={<AntDesign name="mail" size={24} color="black" />}
                placeholder="Enter your Email address"
-               onChangeText={()=>{}}
+               onChangeText={(value) => (emailRef.current = value)}
             />
             <Input
                icon={<FontAwesome6 name="lock" size={26} color="black" />}
                placeholder="Enter your Password"
                secureTextEntry
-               onChangeText={()=>{}}
+               onChangeText={(value) => (passwordRef.current = value) }
             />
              <Pressable onPress={() => router.push('forgot-password')}>
               <Text style={{textAlign: "right"}}>Forget Password</Text></Pressable>
 
-             <Button title={'Login'} loading={loading} onPress={()=>{}} />
+             <Button title={'Login'} loading={loading} onPress={onSubmit} />
           </View>
            {/* Divider */}
           <View style={styles.divider}>
