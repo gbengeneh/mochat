@@ -1,3 +1,1 @@
 
-export const supabaseUrl='https://ntatocgqcxyrcgjhecdw.supabase.co';
-export const supabaseAnonKey='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im50YXRvY2dxY3h5cmNnamhlY2R3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQyNDgzNjcsImV4cCI6MjA0OTgyNDM2N30.l9qYFtFS3Z0tWrH8t8x-DpzbZ4sYnbGkV5KQaRSMxhM';
