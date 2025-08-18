@@ -45,7 +45,6 @@ const SignUp = () => {
     });
 
     const {data, error} = response;
-
     setLoading(false);
 
     if (error) {
