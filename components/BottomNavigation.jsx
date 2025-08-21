@@ -1,15 +1,15 @@
 import React from 'react';
-import { View, StyleSheet, Pressable, Text } from 'react-native';
-import Icon from '../assets/icons';
-import { useRouter, usePathname } from 'expo-router'; // usePathname is used to get the current route
+import { View, StyleSheet, Pressable } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter, usePathname } from 'expo-router';
 import { hp } from '../helper/common';
 import { theme } from '../constants/theme';
 
 const BottomNavigation = () => {
     const router = useRouter();
-    const currentPath = usePathname(); // Get the current active path
+    const currentPath = usePathname();
 
-    const isActive = (path) => currentPath === path; // Function to check if the path is active
+    const isActive = (path) => currentPath === path;
 
     return (
         <View style={styles.container}>
@@ -17,46 +17,42 @@ const BottomNavigation = () => {
                 style={styles.iconContainer}
                 onPress={() => router.push('/home')}
             >
-                <Icon
-                    name="home"
+                <Ionicons
+                    name={isActive('/home') ? 'home' : 'home-outline'}
                     size={hp(3.2)}
-                    strokeWidth={2}
                     color={isActive('/home') ? 'white' : theme.colors.inactive}
                 />
             </Pressable>
 
             <Pressable
                 style={styles.iconContainer}
-                onPress={() => router.push('search')}
+                onPress={() => router.push('/search')}
             >
-                <Icon
-                    name="explore"
+                <Ionicons
+                    name={isActive('/search') ? 'search' : 'search-outline'}
                     size={hp(3.2)}
-                    strokeWidth={2}
-                    color={isActive('explore') ? 'white' : theme.colors.inactive}
+                    color={isActive('/search') ? 'white' : theme.colors.inactive}
                 />
             </Pressable>
 
             <Pressable
                 style={styles.iconContainer}
-                onPress={() => router.push('chats')}
+                onPress={() => router.push('/chats')}
             >
-                <Icon
-                    name="message2"
+                <Ionicons
+                    name={isActive('/chats') ? 'chatbubble-ellipses' : 'chatbubble-ellipses-outline'}
                     size={hp(3.2)}
-                    strokeWidth={2}
                     color={isActive('/chats') ? 'white' : theme.colors.inactive}
                 />
             </Pressable>
 
             <Pressable
                 style={styles.iconContainer}
-                onPress={() => router.push('settingPage')}
+                onPress={() => router.push('/settingPage')}
             >
-                <Icon
-                    name="settings"
-                    size={hp(4.2)}
-                    strokeWidth={2}
+                <Ionicons
+                    name={isActive('/settingPage') ? 'settings' : 'settings-outline'}
+                    size={hp(3.2)}
                     color={isActive('/settingPage') ? 'white' : theme.colors.inactive}
                 />
             </Pressable>
@@ -75,10 +71,6 @@ const styles = StyleSheet.create({
     iconContainer: {
         justifyContent: 'center',
         alignItems: 'center',
-    },
-    label: {
-        fontSize: hp(1.4),
-        marginTop: 4,
     },
 });
 
