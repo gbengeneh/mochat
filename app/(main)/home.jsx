@@ -1,5 +1,5 @@
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ScreenWrapper from '@/components/ScreenWrapper'
 import { theme } from '@/constants/theme'
 import { hp, wp } from '@/helper/common'
@@ -9,27 +9,127 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'expo-router'
 import { getUserData } from '@/services/userService'
 import PostCard from '@/components/PostCard'
+import Loading from '@/components/Loading'
+import BottomNavigation from '@/components/BottomNavigation'
+import { supabase } from '@/lib/supabase'
+import { fetchPosts } from '@/services/postService'
 
 let limit = 0;
 const Home = () => {
-     const {user , setUser} = useAuth();
+  const { user, setAuth } = useAuth();
+  const router = useRouter();
   const [posts, setPosts] = useState([]);
-    const router = useRouter();
-    const [hasMore, setHasMore] = useState(true);
+  const [hasMore, setHasMore] = useState(true);
+  const [notificationCount, setNotificationCount] = useState(0);
 
-
-
-    const handlePostEvent = async (payload) =>{
-      if (payload.eventType == 'INSERT' && payload?.new?.id){
-        let newPost = {...payload.new};
-        let res = await getUserData(newPost.userId);
-        newPost.postLikes = [];
-        newPost.comments = [{count: 0}];
-        newPost.user = res.success ? res.data : {};
-        setPosts(prevPost => [newPost, ...prevPost]);
-        }
-        
+  const handlePostEvent = async (payload) => {
+    if (payload.eventType == 'INSERT' && payload?.new?.id) {
+      let newPost = { ...payload.new };
+      let res = await getUserData(newPost.userId);
+      newPost.postLikes = [];
+      newPost.comments = [{ count: 0 }]
+      newPost.user = res.success ? res.data : {};
+      setPosts(prevPost => [newPost, ...prevPost]);
     }
+    if (payload.eventType === "DELETE" && payload.old.id) {
+      setPosts(prevPost => {
+        let updatedPost = prevPost.filter(posts => posts.id != payload.old.id);
+        return updatedPost;
+      })
+    }
+    if (payload.eventType == 'UPDATE' && payload?.new?.id) {
+      setPosts(prevPost => {
+        let updatedPosts = prevPost.map(posts => {
+          if (posts.id == payload.new.id) {
+            posts.body = payload.new.body;
+            posts.file = payload.new.file;
+          }
+          return posts;
+        });
+        return updatedPosts;
+      })
+    }
+  }
+  const handleNewComment = async (payload) => {
+    console.log('got new comment', payload.new)
+    if (payload.new) {
+      let newComment = { ...payload.new };
+      let res = await getUserData(newComment.userId);
+      newComment.user = res.success ? res.data : {};
+      setPosts(prevPost => {
+        return {
+          ...prevPost,
+          comments: [newComment, ...prevPost.comments]
+        }
+      })
+    }
+  }
+  const handleNewNotification = async (payload) => {
+    console.log('got new notification: ', payload);
+    if (payload.eventType == 'INSERT' && payload.new.id) {
+      setNotificationCount(prev => prev + 1);
+    }
+  }
+
+
+  useEffect(() => {
+
+    let postChannel = supabase
+      .channel('posts')
+      .on('postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'posts'
+        },
+        handlePostEvent)
+      .subscribe();
+    let notificationChannel = supabase
+      .channel('notifications')
+      .on('postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `receiverId=eq.${user.id}`
+        },
+        handleNewNotification)
+      .subscribe();
+
+    let commentChannel = supabase
+      .channel('comments')
+      .on('postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'comments',
+          filter: `posts.id=eq.${posts?.id}`
+        }, handleNewComment
+      ).subscribe();
+    //getPosts();
+
+    return () => {
+      supabase.removeChannel(postChannel);
+      supabase.removeChannel(commentChannel);
+      supabase.removeChannel(notificationChannel);
+    }
+  }, [])
+
+  const getPosts = async () => {
+    //call the api here
+    if (!hasMore) return null;
+    limit = limit + 10;
+
+    // console.log('fectching post: ', limit);
+    let res = await fetchPosts(limit);
+    if (res.success) {
+      if (posts.length == res.data.length) setHasMore(false);
+      setPosts(res.data)
+    }
+  }
+
+
+    
   return (
     <ScreenWrapper bg={theme.colors.background}>
      <View style={styles.container}>
@@ -61,15 +161,38 @@ const Home = () => {
              keyExtractor={(item) => item.id.toString()}
              renderItem={({item}) =>
               <PostCard
-               
+               item={item}
+               currentUser={user}
+               router={router}
               
               />
             }
-             
+            onEndReached={() => {}  }
+            onEndReachedThreshold={0}
+             ListFooterComponent={
+              hasMore ? (
+              <View>
+                <Loading />
+              </View>
+              ):(
+                <Text style={styles.noPosts}>No more posts</Text>
+              )
+             }
           />
+
+          {/* new post floating button */}
+          <Pressable
+          style={styles.newPostButton}
+          onPress={() => router.push('/newPost')}
+          >
+            <Ionicons name="add" size={hp(3.5)} color="white" />
+          </Pressable>
+
+          {/* Bottom Navigation */}
+          <BottomNavigation />
      </View>
     </ScreenWrapper>
-  )
+  );
 }
 
 export default Home
