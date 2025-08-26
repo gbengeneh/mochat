@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   },
   newPostButton: {
     position: 'absolute',
-    bottom: hp(10),
+    bottom: hp(20),
     right: wp(5),
     backgroundColor: theme.colors.primary,
     width: hp(6),

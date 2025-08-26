@@ -67,6 +67,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: theme.colors.primary,
         paddingVertical: hp(2),
+        marginBottom: hp(7),
     },
     iconContainer: {
         justifyContent: 'center',

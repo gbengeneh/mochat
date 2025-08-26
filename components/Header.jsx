@@ -2,12 +2,12 @@ import { StyleSheet, Text, View } from 'react-native'
 import React, { useContext } from 'react'
 import { useRouter } from 'expo-router'
 import BackButton from './BackButton';
-import { hp } from '../helpers/common';
+import { hp } from '../helper/common';
 import { theme } from '../constants/theme';
-import { ThemeContext } from '@/contexts/ThemeContext';
+
 
 const Header = ({title, showBackButton=true, mb=10}) => {
-  const {currentTheme} = useContext(ThemeContext)
+
     const router = useRouter();
   return (
     <View style={[styles.container, {marginBottom: mb}]}>
@@ -18,7 +18,7 @@ const Header = ({title, showBackButton=true, mb=10}) => {
             </View>
         )
       }
-      <Text style={[styles.title, {color: currentTheme.colors.text}]}>{title || ""}</Text>
+      <Text style={[styles.title, {color: theme.colors.text}]}>{title || ""}</Text>
     </View>
   )
 }
