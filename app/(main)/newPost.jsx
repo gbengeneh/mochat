@@ -5,12 +5,18 @@ import { theme } from '@/constants/theme'
 import ScreenWrapper from '@/components/ScreenWrapper'
 import Header from '@/components/Header'
 import Avatar from '@/components/Avatar'
+import * as ImagePicker from 'expo-image-picker'
 import { useAuth } from '@/contexts/AuthContext'
 import TextArea from '@/components/TextArea'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { getSupabaseFileUri } from '@/services/imageService'
 import { Ionicons } from '@expo/vector-icons'
 import Button from '@/components/Button'
+import { Image } from 'expo-image'
+import AntDesign from '@expo/vector-icons/AntDesign';
+import { Video } from 'expo-av'
+import { createOrUpdatePost } from '@/services/postService'
+
 
 const newPost = () => {
   const {user} = useAuth();
@@ -22,7 +28,7 @@ const newPost = () => {
 
 
   useEffect(()=>{
-      if(post &&post.id){
+      if(post && post.id){
         setBodyText(post.body || "");
         setFile(post.file || null);
       }
@@ -52,7 +58,7 @@ const newPost = () => {
       }
     
 
-  const isLocalFile = (file) =>{
+  const isLocalFile = file =>{
     if(!file) return null;
      if(typeof file == 'object') return true;
      return false;
@@ -117,7 +123,7 @@ const newPost = () => {
                 placeholder="What's on your mind?"
                 multiline
                 value={bodyText}
-                onchangeText={setBodyText}
+                onChangeText={setBodyText}
                />
               </View>
               {file && (
@@ -134,7 +140,7 @@ const newPost = () => {
                            <Image source={{ uri: getfileUri(file) }} resizeMode="cover" style={{ flex: 1 }} />
                           )}
                            <Pressable style={styles.closeIcon} onPress={() => setFile(null)}>
-                               <Icon name="delete" size={20} color="white" />
+                               <AntDesign name="delete" size={24} color="red" />
                          </Pressable>
                        </View>
               )}
