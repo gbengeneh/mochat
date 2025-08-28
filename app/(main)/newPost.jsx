@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { hp, wp } from '@/helper/common'
 import { theme } from '@/constants/theme'
@@ -9,6 +9,8 @@ import { useAuth } from '@/contexts/AuthContext'
 import TextArea from '@/components/TextArea'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { getSupabaseFileUri } from '@/services/imageService'
+import { Ionicons } from '@expo/vector-icons'
+import Button from '@/components/Button'
 
 const newPost = () => {
   const {user} = useAuth();
@@ -116,11 +118,47 @@ const newPost = () => {
                 multiline
                 value={bodyText}
                 onchangeText={setBodyText}
-               
                />
               </View>
-              
+              {file && (
+                       <View style={styles.file}>
+                          {getFileType(file) == 'video' ? (
+                             <Video
+                                  style={{ flex: 1 }}
+                                  source={{ uri: getfileUri(file) }}
+                                  useNativeControls
+                                  resizeMode="cover"
+                                  isLooping
+                                />
+                          ) : (
+                           <Image source={{ uri: getfileUri(file) }} resizeMode="cover" style={{ flex: 1 }} />
+                          )}
+                           <Pressable style={styles.closeIcon} onPress={() => setFile(null)}>
+                               <Icon name="delete" size={20} color="white" />
+                         </Pressable>
+                       </View>
+              )}
+              <View style={styles.media} onPress={() => onPick(true)}>
+                  <Text style={styles.addImageText}>Add to your post</Text>
+                  <View style={styles.mediaIcons}>
+                      <Pressable style={styles.imageIcon} onPress={() => onPick(true)}>
+                          <Ionicons name="image-outline" size={24} color={theme.colors.primary} />
+                      </Pressable>
+                      <Pressable style={styles.imageIcon} onPress={() => onPick(false)}>
+                          <Ionicons name="videocam-outline" size={24} color={theme.colors.primary} />
+                      </Pressable>
+                  </View>
+              </View>
+
             </ScrollView>
+             <Button
+                buttonStyle={{ height: hp(6.2) }}
+                title={post && post.id ? "Update" : "Post"}
+                loading={loading}
+                hasShadow={false}
+                onPress={onSubmit}
+                disabled={loading}
+              />
         </View>
 
     </ScreenWrapper>
@@ -132,7 +170,7 @@ export default newPost
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginBottom: 30,
+    marginBottom: 60,
     paddingHorizontal: wp(4),
     gap: 15,
   },
